@@ -1,0 +1,53 @@
+# nginx 使用的镜像是 jwilder/nginx-proxy, 所有的配置文件都暴露了出来,重新编写了镜像的nginx.tmpl文件
+nginx-proxy:
+    image: 'jwilder/nginx-proxy'
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /path/to/run/nginx-proxy/nginx.conf:/etc/nginx/nginx.conf
+      - /path/to/run/nginx-proxy/vhost.d:/etc/nginx/vhost.d:ro
+      - /path/to/run/nginx-proxy/certs:/etc/nginx/certs
+      - /path/to/run/nginx-proxy/nginx.tmpl:/app/nginx.tmpl
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - /path/to/run//www:/var/www/html:rw
+
+# php 使用的镜像是我家的 sixbyte/fpm56:0.1 , 大部分的配置文件都暴露出来
+php:
+    image: 'sixbyte/fpm56:0.1'
+    links:
+      - "mysql-base:mysqldocker"
+      - "redis-base:redisdocker"
+    volumes:
+      - /path/to/run//www:/var/www/html:rw
+      - /path/to/run/php5.6/php-fpm.conf:/usr/local/etc/php-fpm.conf
+      - /path/to/run/php5.6/php.ini:/usr/local/etc/php/php.ini:ro
+    environment:
+      - VIRTUAL_HOST=webapp-php.local.com,*.local.com
+      - VIRTUAL_PORT=9000
+
+# 目前流行的laravel框架 使用的镜像是我家的 sixbyte/laravel5:0.1 大部分的配置文件都暴露出来
+laravel:
+    image: 'sixbyte/laravel5:0.1'
+    links:
+      - "mysql-base:mysqldocker"
+      - "redis-base:redisdocker"
+    volumes:
+      - /path/to/run//www:/var/www/html:rw
+      - /path/to/run/laravel5.1/php-fpm.conf:/usr/local/etc/php-fpm.conf
+      - /path/to/run/laravel5.1/php.ini:/usr/local/etc/php/php.ini:ro
+    environment:
+      - VIRTUAL_HOST=laravel5.laravel.com,*.laravel.com
+      - VIRTUAL_PORT=9000
+
+# mysql 使用的是 mysql:5.7 账号 root 密码 root
+mysql-base:
+    image: 'mysql:5.7'
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+
+# redis 使用的是 redis:3.0.3
+redis-base:
+    image: 'redis:3.0.3'
+
+# 你可以不断的外接服务,比如beanstalkd,mongodb 等,非常的方便
